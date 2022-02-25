@@ -43,7 +43,7 @@ contract EvenOdd is Ownable, ReentrancyGuard {
 
     function bet(bool _isEven) external payable nonReentrant {
         require(!isAlreadyBet(_msgSender()), "Already bet");
-        require(msg.value > 0, "minimum amount needed to play the game");
+        require(msg.value > 0, "Minimum amount needed to play the game: 1 CASH");
         require(
             (totalBetAmountPerRoll + msg.value) * 2 <= getDealerBalance(),
             "total bet amount exceeds dealer balance"

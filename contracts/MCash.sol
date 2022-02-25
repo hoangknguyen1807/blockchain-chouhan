@@ -1,6 +1,7 @@
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.4;
 
-import "./IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "../libraries/SafeMath.sol";
 
 contract MCash is IERC20 {
@@ -24,7 +25,7 @@ contract MCash is IERC20 {
      * The `constructor` is executed only once when the contract is created.
      */
     constructor() {
-        _totalSupply = 0; 
+        _totalSupply = 0;
         _authorized[msg.sender] = true;
     }
 
@@ -130,9 +131,9 @@ contract MCash is IERC20 {
         emit Transfer(address(0), account, amount);
     }
 
-    function mint(address account, uint256 amount) external {
+    function mint(address account, uint256 amount) external payable {
         require(_authorized[msg.sender], "Only authorized users can mint!");
-        
+
         _mint(account, amount);
     }
 
