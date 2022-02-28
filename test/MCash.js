@@ -1,16 +1,16 @@
 const { expect } = require("chai");
 
 describe("MCash contract", function () {
-  it("Deployment should assign the total supply of tokens to the owner", async function () {
+  it("Deployment should add deployer to the authorized users list", async function () {
     const [owner] = await ethers.getSigners();
 
-    const EvenOdd = await ethers.getContractFactory("EvenOdd");
+    const MCash = await ethers.getContractFactory("MCash");
 
-    const evenOddInstance = await EvenOdd.deploy(owner.address);
+    const mCashInstance = await EvenOdd.deploy(owner.address);
 
-    await evenOddInstance.deployed();
-    console.log('demo token deployed to address: ' + evenOddInstance.address);
+    await mCashInstance.deployed();
+    console.log('demo token deployed to address: ' + mCashInstance.address);
 
-    expect(await evenOddInstance.getDealerBalance()).to.equal(0);
+    expect(await mCashInstance.getDealerBalance()).to.equal(0);
   });
 });

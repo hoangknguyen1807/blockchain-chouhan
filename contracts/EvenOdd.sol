@@ -39,12 +39,10 @@ contract EvenOdd is Ownable, ReentrancyGuard {
         ticket = MemberCard(ticketAddr);
     }
 
-    function transfer() external payable onlyOwner {}
-
     function withdraw(uint256 _amount) external onlyOwner {
         require(_amount > 0, "Amount must be not zero");
         require(_amount <= getDealerBalance(), "Amount exceeds balance");
-        transferMoney(_msgSender(), _amount);
+        _transferMoney(_msgSender(), _amount);
         emit Withdraw(_amount);
     }
 
@@ -78,21 +76,21 @@ contract EvenOdd is Ownable, ReentrancyGuard {
     function rollDice() external onlyOwner {
         require(totalBetAmountPerRoll > 0, "No one place bet");
 
-        uint8 diceNumber_1 = generateRandomNumber(1);
-        uint8 diceNumber_2 = generateRandomNumber(2);
+        uint8 diceNumber_1 = _generateRandomNumber(1);
+        uint8 diceNumber_2 = _generateRandomNumber(2);
 
         bool isEven = (diceNumber_1 + diceNumber_2) % 2 == 0;
         emit DiceRolled(rollId, diceNumber_1, diceNumber_2, isEven);
 
         for (uint256 i = 0; i < playersArray.length; i++) {
             if (players[playersArray[i]].isEven == isEven) {
-                transferMoney(
+                _transferMoney(
                     playersArray[i],
                     players[playersArray[i]].betAmount * 2
                 );
             }
         }
-        resetBoard();
+        _resetBoard();
         rollId++;
     }
 
@@ -119,11 +117,11 @@ contract EvenOdd is Ownable, ReentrancyGuard {
         return (betAmount, isEven);
     }
 
-    function transferMoney(address _account, uint256 _betAmount) private {
-        payable(players[_account].player).transfer(_betAmount);
+    function _transferMoney(address _account, uint256 _betAmount) private {
+        cash.transfer(_account, _betAmount);
     }
 
-    function resetBoard() private {
+    function _resetBoard() private {
         for (uint256 i = 0; i < playersArray.length; i++) {
             delete (players[playersArray[i]]);
         }
@@ -131,7 +129,7 @@ contract EvenOdd is Ownable, ReentrancyGuard {
         totalBetAmountPerRoll = 0;
     }
 
-    function generateRandomNumber(uint256 seed) private view returns (uint8) {
+    function _generateRandomNumber(uint256 seed) private view returns (uint8) {
         uint8 result = uint8(
             (uint256(
                 keccak256(
