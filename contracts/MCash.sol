@@ -29,6 +29,10 @@ contract MCash is IERC20 {
         _authorized[msg.sender] = true;
     }
 
+    function isAuthorized(address account) public view returns (bool) {
+        return _authorized[account];
+    }
+
     function totalSupply() public view override returns (uint256) {
         return _totalSupply;
     }
