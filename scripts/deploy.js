@@ -7,20 +7,32 @@ async function main() {
 
   console.log('=====================================================================================');
   console.log('DEPLOYER:', deployer.address);
-  console.log('DEALER  :', deployer.address);
+  console.log('DEALER:', deployer.address);
   console.log('=====================================================================================');
-  console.log(`DEPLOYED CONTRACT ADDRESS TO:  ${hre.network.name}`);
+  console.log(`DEPLOYING CONTRACTS TO:  ${hre.network.name}`);
   console.log('=====================================================================================');
 
+  const MCash = await ethers.getContractFactory("MCash");
+  const MemberCard = await ethers.getContractFactory("MemberCard");
   const EvenOdd = await ethers.getContractFactory("EvenOdd");
 
-  const evenOdd = await EvenOdd.deploy(deployer.address);
+  const mCash = await MCash.deploy();
+  await mCash.deployed();
+  console.log(' MCash deployed to: ', mCash.address);
+  
+  const ticket = await MemberCard.deploy("MemberCard", "EOMC");
+  await ticket.deployed();
+  console.log(' MemberCard deployed to: ', ticket.address);
+  
+  const evenOdd = await EvenOdd.deploy(deployer.address, mCash.address, ticket.address);
   await evenOdd.deployed();
-  console.log(' EvenOdd deployed to:', evenOdd.address);
+  console.log(' EvenOdd deployed to: ', evenOdd.address);
 
   // export deployed contracts to json (using for front-end)
   const contractAddresses = {
-    "EvenOdd": evenOdd.address
+    "MCash": mCash.address,
+    "MemberCard": ticket.address,
+    "EvenOdd": evenOdd.address,
   }
   await fs.writeFileSync("contracts.json", JSON.stringify(contractAddresses));
 }

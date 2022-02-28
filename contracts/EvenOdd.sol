@@ -4,12 +4,18 @@ pragma solidity ^0.8.4;
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
+import "./MCash.sol";
+import "./MemberCard.sol";
+
 contract EvenOdd is Ownable, ReentrancyGuard {
     struct PlayerMetadata {
         uint256 betAmount;
         address player;
         bool isEven;
     }
+
+    MCash public immutable cash;
+    MemberCard public immutable ticket;
 
     address[] public playersArray;
     mapping(address => PlayerMetadata) public players;
@@ -27,8 +33,10 @@ contract EvenOdd is Ownable, ReentrancyGuard {
         bool isEven
     );
 
-    constructor(address _dealer) {
+    constructor(address _dealer, address mCashAddr, address ticketAddr) {
         transferOwnership(_dealer);
+        cash = MCash(mCashAddr);
+        ticket = MemberCard(ticketAddr);
     }
 
     function transfer() external payable onlyOwner {}
@@ -37,29 +45,34 @@ contract EvenOdd is Ownable, ReentrancyGuard {
         require(_amount > 0, "Amount must be not zero");
         require(_amount <= getDealerBalance(), "Amount exceeds balance");
         transferMoney(_msgSender(), _amount);
-
         emit Withdraw(_amount);
     }
 
-    function bet(bool _isEven) external payable nonReentrant {
+    function bet(bool _isEven, uint256 amount) external payable nonReentrant {
+        uint256 countTickets = ticket.balanceOf(msg.sender);
+        require(countTickets > 0, "A ticket required to play this game!");
+        uint256 lastTokenId = ticket.tokenOfOwnerByIndex(msg.sender, countTickets - 1);
+        require(block.timestamp < ticket.getDueDate(lastTokenId), "Ticket expired!");
+
         require(!isAlreadyBet(_msgSender()), "Already bet");
-        require(msg.value > 0, "Minimum amount needed to play the game: 1 CASH");
+        require(amount > 0, "Minimum amount needed to play the game: 1 CASH");
         require(
-            (totalBetAmountPerRoll + msg.value) * 2 <= getDealerBalance(),
+            (totalBetAmountPerRoll + amount) * 2 <= getDealerBalance(),
             "total bet amount exceeds dealer balance"
         );
 
         players[_msgSender()] = PlayerMetadata(
-            msg.value,
+            amount,
             _msgSender(),
             _isEven
         );
 
+        require(cash.transferFrom(msg.sender, address(this), amount), "Transfer bet amount failed!");
         playersArray.push(_msgSender());
-        totalBetAmount += msg.value;
-        totalBetAmountPerRoll += msg.value;
+        totalBetAmount += amount;
+        totalBetAmountPerRoll += amount;
 
-        emit Bet(rollId, _msgSender(), msg.value, _isEven);
+        emit Bet(rollId, _msgSender(), amount, _isEven);
     }
 
     function rollDice() external onlyOwner {

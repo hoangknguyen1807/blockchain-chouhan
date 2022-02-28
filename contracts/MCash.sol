@@ -29,7 +29,7 @@ contract MCash is IERC20 {
         _authorized[msg.sender] = true;
     }
 
-    function totalSupply() public view returns (uint256) {
+    function totalSupply() public view override returns (uint256) {
         return _totalSupply;
     }
 
@@ -39,7 +39,7 @@ contract MCash is IERC20 {
      * The `view` modifier indicates that it doesn't modify the contract's
      * state, which allows us to call it without executing a transaction.
      */
-    function balanceOf(address account) external view returns (uint256) {
+    function balanceOf(address account) external view override returns (uint256) {
         return _balances[account];
     }
 
@@ -52,6 +52,7 @@ contract MCash is IERC20 {
     function allowance(address owner, address spender)
         public
         view
+        override
         returns (uint256)
     {
         return _allowance[owner][spender];
@@ -63,7 +64,7 @@ contract MCash is IERC20 {
      * The `external` modifier makes a function *only* callable from outside
      * the contract.
      */
-    function transfer(address to, uint256 amount) external returns (bool) {
+    function transfer(address to, uint256 amount) external override returns (bool) {
         // Check if the transaction sender has enough tokens.
         // If `require`'s first argument evaluates to `false` then the
         // transaction will revert.
@@ -87,7 +88,7 @@ contract MCash is IERC20 {
      * @param spender The address which will spend the funds.
      * @param amount The amount of tokens to be spent.
      */
-    function approve(address spender, uint256 amount) public returns (bool) {
+    function approve(address spender, uint256 amount) public override returns (bool) {
         require(spender != address(0));
 
         _allowance[msg.sender][spender] = amount;
@@ -105,7 +106,7 @@ contract MCash is IERC20 {
         address from,
         address to,
         uint256 amount
-    ) public returns (bool) {
+    ) public override returns (bool) {
         require(amount <= _balances[from]);
         require(amount <= _allowance[from][msg.sender]);
         require(to != address(0));

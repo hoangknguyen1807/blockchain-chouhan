@@ -3,7 +3,6 @@ pragma solidity ^0.8.4;
 
 import "../libraries/SafeMath.sol";
 import "../libraries/Address.sol";
-import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/utils/introspection/ERC165.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/IERC721Enumerable.sol";
@@ -11,12 +10,12 @@ import "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol";
 
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
-contract MemberCard is IERC721, IERC721Metadata, ERC165 {
+contract MemberCard is IERC721Metadata, ERC165 {
   using SafeMath for uint256;
   using Address for address;
 
-  string public name = "MemberCard";
-  string public symbol = "EOMC";
+  string private _name;
+  string private _symbol;
   mapping(uint256 => string) private _tokenURIs;
   mapping(uint256 => uint256) private _dueDates;
 
@@ -25,6 +24,14 @@ contract MemberCard is IERC721, IERC721Metadata, ERC165 {
   // Equals to `bytes4(keccak256("onERC721Received(address,address,uint256,bytes)"))`
   // which can be also obtained as `IERC721Receiver(0).onERC721Received.selector`
   bytes4 private constant _ERC721_RECEIVED = 0x150b7a02;
+
+  function name() external view override returns (string memory) {
+    return _name;
+  }
+
+  function symbol() external view override returns (string memory) {
+    return _symbol;
+  }
 
   // Mapping from token ID to owner
   mapping (uint256 => address) private _tokenOwner;
@@ -35,11 +42,11 @@ contract MemberCard is IERC721, IERC721Metadata, ERC165 {
   // Mapping from owner to number of owned token
   mapping (address => uint256) private _ownedTokensCount;
 
-  // Mapping from owner to operator approvals
-  mapping (address => mapping (address => bool)) private _operatorApprovals;
-
   // Mapping from owner to list of owned token IDs
   mapping(address => mapping(uint256 => uint256)) private _ownedTokens;
+
+  // Mapping from owner to operator approvals
+  mapping (address => mapping (address => bool)) private _operatorApprovals;
 
   bytes4 private constant _InterfaceId_ERC721 = 0x80ac58cd;
   /*
@@ -55,14 +62,16 @@ contract MemberCard is IERC721, IERC721Metadata, ERC165 {
    *   bytes4(keccak256('safeTransferFrom(address,address,uint256,bytes)'))
    */
 
-  constructor() {
+  constructor(string memory xname, string memory xsymbol) {
+    _name = xname;
+    _symbol = xsymbol;
   }
 
   function getDueDate(uint256 tokenId) public view returns (uint256) {
     return _dueDates[tokenId];
   }
 
-  function tokenURI(uint256 tokenId) external view returns (string memory) {
+  function tokenURI(uint256 tokenId) external view override returns (string memory) {
     return _tokenURIs[tokenId];
   }
 
@@ -71,7 +80,7 @@ contract MemberCard is IERC721, IERC721Metadata, ERC165 {
    * @param owner address to query the balance of
    * @return uint256 representing the amount owned by the passed address
    */
-  function balanceOf(address owner) public view returns (uint256) {
+  function balanceOf(address owner) public view override returns (uint256) {
     require(owner != address(0));
     return _ownedTokensCount[owner];
   }
@@ -81,7 +90,7 @@ contract MemberCard is IERC721, IERC721Metadata, ERC165 {
    * @param tokenId uint256 ID of the token to query the owner of
    * @return owner address currently marked as the owner of the given token ID
    */
-  function ownerOf(uint256 tokenId) public view returns (address) {
+  function ownerOf(uint256 tokenId) public view override returns (address) {
     address owner = _tokenOwner[tokenId];
     require(owner != address(0));
     return owner;
@@ -90,8 +99,7 @@ contract MemberCard is IERC721, IERC721Metadata, ERC165 {
   /**
     * @dev See {IERC721Enumerable-tokenOfOwnerByIndex}.
     */
-  function tokenOfOwnerByIndex(address owner, uint256 index)
-    public view returns (uint256) {
+  function tokenOfOwnerByIndex(address owner, uint256 index) public view returns (uint256) {
       require(index < balanceOf(owner), "ERC721Enumerable: owner index out of bounds");
       return _ownedTokens[owner][index];
   }
@@ -104,7 +112,7 @@ contract MemberCard is IERC721, IERC721Metadata, ERC165 {
    * @param to address to be approved for the given token ID
    * @param tokenId uint256 ID of the token to be approved
    */
-  function approve(address to, uint256 tokenId) external {
+  function approve(address to, uint256 tokenId) external override {
     address owner = ownerOf(tokenId);
     require(to != owner);
     require(msg.sender == owner || isApprovedForAll(owner, msg.sender));
@@ -119,7 +127,7 @@ contract MemberCard is IERC721, IERC721Metadata, ERC165 {
    * @param tokenId uint256 ID of the token to query the approval of
    * @return address currently approved for the given token ID
    */
-  function getApproved(uint256 tokenId) public view returns (address) {
+  function getApproved(uint256 tokenId) public view override returns (address) {
     require(_exists(tokenId));
     return _tokenApprovals[tokenId];
   }
@@ -130,7 +138,7 @@ contract MemberCard is IERC721, IERC721Metadata, ERC165 {
    * @param to operator address to set the approval
    * @param approved representing the status of the approval to be set
    */
-  function setApprovalForAll(address to, bool approved) public {
+  function setApprovalForAll(address to, bool approved) public override {
     require(to != msg.sender);
     _operatorApprovals[msg.sender][to] = approved;
     emit ApprovalForAll(msg.sender, to, approved);
@@ -148,6 +156,7 @@ contract MemberCard is IERC721, IERC721Metadata, ERC165 {
   )
     public
     view
+    override
     returns (bool)
   {
     return _operatorApprovals[owner][operator];
@@ -166,7 +175,7 @@ contract MemberCard is IERC721, IERC721Metadata, ERC165 {
     address to,
     uint256 tokenId
   )
-    public
+    public override
   {
     // require(_isOwner(msg.sender, tokenId));
     // require(to != address(0));
@@ -195,7 +204,7 @@ contract MemberCard is IERC721, IERC721Metadata, ERC165 {
     address to,
     uint256 tokenId
   )
-    public
+    public override
   {
     // // solium-disable-next-line arg-overflow
     // safeTransferFrom(from, to, tokenId, "");
@@ -219,7 +228,7 @@ contract MemberCard is IERC721, IERC721Metadata, ERC165 {
     uint256 tokenId,
     bytes memory _data
   )
-    public
+    public override
   {
     // transferFrom(from, to, tokenId);
     // // solium-disable-next-line arg-overflow
@@ -268,14 +277,12 @@ contract MemberCard is IERC721, IERC721Metadata, ERC165 {
     require(to != address(0), "ERC721: Can't mint to the address 0");
     require(!_exists(tokenId), "ERC721: token already minted");
 
-    _addTokenTo(to, tokenId);
     _dueDates[tokenId] = block.timestamp + 90 days;
+    _addTokenTo(to, tokenId);
     emit Transfer(address(0), to, tokenId);
   }
 
   function mint(address to, uint256 tokenId) external payable {
-    require(msg.value == 1 ether, "A new member card costs 1 ETH");
-
     _mint(to, tokenId);
   }
 
@@ -311,7 +318,9 @@ contract MemberCard is IERC721, IERC721Metadata, ERC165 {
   function _addTokenTo(address to, uint256 tokenId) internal {
     require(_tokenOwner[tokenId] == address(0));
     _tokenOwner[tokenId] = to;
-    _ownedTokensCount[to] += _ownedTokensCount[to].add(1);
+    uint256 index = _ownedTokensCount[to];
+    _ownedTokens[to][index] = tokenId;
+    _ownedTokensCount[to] = _ownedTokensCount[to].add(1);
   }
 
   /**
