@@ -4,6 +4,8 @@ pragma solidity ^0.8.4;
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "../libraries/SafeMath.sol";
 
+import "hardhat/console.sol";
+
 contract MCash is IERC20 {
     using SafeMath for uint256;
 
@@ -130,13 +132,13 @@ contract MCash is IERC20 {
      * @param amount The amount that will be created.
      */
     function _mint(address account, uint256 amount) internal {
-        require(account != address(0));
+        require(account != address(0), "Cannot send minted token to address(0)!");
         _totalSupply += amount;
         _balances[account] += amount;
         emit Transfer(address(0), account, amount);
     }
 
-    function mint(address account, uint256 amount) external payable {
+    function mint(address account, uint256 amount) external {
         require(_authorized[msg.sender], "Only authorized users can mint!");
 
         _mint(account, amount);

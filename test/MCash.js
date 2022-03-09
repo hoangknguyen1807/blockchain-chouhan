@@ -1,4 +1,5 @@
 const { expect } = require("chai");
+const { ethers } = require("hardhat");
 
 describe("MCash contract unit tests", function () {
   let MCash;
@@ -40,6 +41,28 @@ describe("MCash contract unit tests", function () {
     for (let account of accounts) {
       expect(await mCashInstance.isAuthorized(account.address)).to.equal(false);
     }
+  });
+
+  it("Internal _mint: Mint 10 MCash token", async function () {
+    const $MCash = await ethers.getContractFactory('$MCash');
+    const $mCashInstance = await $MCash.deploy();
+    
+    await $mCashInstance.$_mint(accounts[0].address, 10);
+
+    expect(await $mCashInstance.balanceOf(accounts[0].address)).to.equal(10);
+
+  });
+
+  it("Internal _mint: prevent mint to address(0)", async function () {
+    const $MCash = await ethers.getContractFactory('$MCash');
+    const $mCashInstance = await $MCash.deploy();
+
+    // const address0 = '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266';
+    const address0 = '0x0000000000000000000000000000000000000000';
+
+    await expect($mCashInstance.$_mint(address0, 10)).to.be
+      .revertedWith("Cannot send minted token to address(0)!");
+
   });
 
   it("Mint 15 MCash token", async function () {

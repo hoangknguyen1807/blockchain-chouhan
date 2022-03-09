@@ -1,16 +1,51 @@
 const { expect } = require("chai");
+const { ethers } = require("hardhat");
 
-describe("EvenOdd contract", function () {
-  it("Deployment should assign the total supply of tokens to the owner", async function () {
-    const [owner] = await ethers.getSigners();
+describe("EvenOdd contract unit tests", function () {
+  let MCash, MemberCard, EvenOdd;
+  let cashInstance, ticketInstance, gameInstance;
+  let owner;
+  let accounts;
 
-    const EvenOdd = await ethers.getContractFactory("EvenOdd");
+  this.beforeEach(async () => {
+    [owner, ...accounts] = await ethers.getSigners();
 
-    const evenOddInstance = await EvenOdd.deploy(owner.address);
+    MCash = await ethers.getContractFactory("MCash");
+    MemberCard = await ethers.getContractFactory("MemberCard");
+    EvenOdd = await ethers.getContractFactory("EvenOdd");
+    
+    cashInstance = await MCash.deploy();
+    ticketInstance = await MemberCard.deploy("MemberCard", "EOT");
+    
+    await cashInstance.deployed();
+    await ticketInstance.deployed();
 
-    await evenOddInstance.deployed();
-    console.log('demo token deployed to address: ' + evenOddInstance.address);
+    gameInstance = await EvenOdd.deploy(
+      owner.address,
+      cashInstance.address,
+      ticketInstance.address
+    );
 
-    expect(await evenOddInstance.getDealerBalance()).to.equal(0);
+    await gameInstance.deployed();
+
+    console.log('    EvenOdd contract deployed to address: ' + gameInstance.address, "\n");
   });
+
+  // this.beforeEach(async function () {
+  //   // Get the ContractFactory and Signers here.
+  //   [owner, ...accounts] = await ethers.getSigners();
+  //   MemberCard = await ethers.getContractFactory("MemberCard");
+
+  //   ticketInstance = await MemberCard.deploy("MemberCard", "EOT");
+
+  //   await ticketInstance.deployed();
+  // });
+
+  it("Deployment: initial dealer balance must be 0", async function () {
+    expect(await gameInstance.getDealerBalance()).to.equal(0);
+  });
+
+  // it("Place bet", async function () {
+  //   await gameInstance.rollDice();
+  // });
 });

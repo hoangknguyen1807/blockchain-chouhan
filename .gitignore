@@ -50,9 +50,13 @@ package-lock.json
 
 # Others
 contracts.json
+coverage.json
 
 node_modules
 
 #Hardhat files
 cache
 artifacts
+
+#hardhat-exposed
+contracts-exposed/

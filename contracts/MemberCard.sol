@@ -7,12 +7,16 @@ import "@openzeppelin/contracts/utils/introspection/ERC165.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/IERC721Enumerable.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol";
-
+import "@openzeppelin/contracts/utils/Counters.sol";
+import {ERC721} from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
-contract MemberCard is IERC721Metadata, ERC165 {
+contract MemberCard is IERC721Metadata, ERC165, Ownable {
   using SafeMath for uint256;
   using Address for address;
+  using Counters for Counters.Counter;
+
+  Counters.Counter private _tokenIdCounter;
 
   string private _name;
   string private _symbol;
@@ -227,9 +231,7 @@ contract MemberCard is IERC721Metadata, ERC165 {
     address to,
     uint256 tokenId,
     bytes memory _data
-  )
-    public override
-  {
+  ) public override {
     // transferFrom(from, to, tokenId);
     // // solium-disable-next-line arg-overflow
     // require(_checkAndCallSafeTransfer(from, to, tokenId, _data));
@@ -255,11 +257,7 @@ contract MemberCard is IERC721Metadata, ERC165 {
   function _isOwner(
     address spender,
     uint256 tokenId
-  )
-    internal
-    view
-    returns (bool)
-  {
+  ) internal view returns (bool) {
     address owner = ownerOf(tokenId);
     // Disable solium check because of
     // https://github.com/duaraghav8/Solium/issues/175
@@ -282,7 +280,9 @@ contract MemberCard is IERC721Metadata, ERC165 {
     emit Transfer(address(0), to, tokenId);
   }
 
-  function mint(address to, uint256 tokenId) external payable {
+  function mint(address to) external onlyOwner {
+    uint256 tokenId = _tokenIdCounter.current();
+    _tokenIdCounter.increment();
     _mint(to, tokenId);
   }
 
@@ -348,10 +348,7 @@ contract MemberCard is IERC721Metadata, ERC165 {
     address to,
     uint256 tokenId,
     bytes memory _data
-  )
-    internal
-    returns (bool)
-  {
+  ) internal returns (bool) {
     if (!to.isContract()) {
       return true;
     }

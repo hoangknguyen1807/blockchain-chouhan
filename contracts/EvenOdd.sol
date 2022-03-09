@@ -46,7 +46,7 @@ contract EvenOdd is Ownable, ReentrancyGuard {
         emit Withdraw(_amount);
     }
 
-    function bet(bool _isEven, uint256 amount) external payable nonReentrant {
+    function bet(bool _isEven, uint256 amount) external nonReentrant {
         uint256 countTickets = ticket.balanceOf(msg.sender);
         require(countTickets > 0, "A ticket required to play this game!");
         uint256 lastTokenId = ticket.tokenOfOwnerByIndex(msg.sender, countTickets - 1);
