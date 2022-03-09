@@ -28,6 +28,11 @@ Deploy contracts (default is local network `hardhat`)
 cmd$> npx hardhat run scripts/deploy.js --network <your-network>
 ```
 
+Run verification of contract
+```console
+cmd$> npx hardhat verify <contract address> <arguments> --network <network>
+```
+
 Run all javascript tests
 ```console
 cmd$> npx hardhat test
