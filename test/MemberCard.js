@@ -18,13 +18,13 @@ describe("MemberCard contract unit tests", function () {
   });
 
   this.beforeEach(async function () {
-    // Get the ContractFactory and Signers here.
     [owner, ...accounts] = await ethers.getSigners();
     MemberCard = await ethers.getContractFactory("MemberCard");
 
-    ticketInstance = await MemberCard.deploy("MemberCard", "EOT");
+    ticketInstance = await MemberCard.deploy("EOTicket", "EOMC", "evenodd.com/ticket/");
 
-    await ticketInstance.deployed();
+    const rs = await ticketInstance.deployed();
+    console.log("Deploy result:", rs);
   });
 
   it("Token collection name MemberCard and symbol EOT", async function () {
@@ -60,5 +60,17 @@ describe("MemberCard contract unit tests", function () {
     const duration = moment.duration(dueTs - nowTs, 'seconds');
     
     expect(Math.floor(duration.asDays())).to.equal(90);
+  });
+
+  it("Function tokenURI(uint256): should return token's URI string", async function () {
+    console.log("");
+
+    const tokenId = 1357;
+
+    await ticketInstance.mint(accounts[0].address, tokenId);
+
+    const returnedURI = await ticketInstance.tokenURI(tokenId);
+
+    console.log(returnedURI);
   });
 });

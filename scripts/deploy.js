@@ -20,7 +20,7 @@ async function main() {
   await mCash.deployed();
   console.log(' MCash deployed to: ', mCash.address);
   
-  const ticket = await MemberCard.deploy("MemberCard", "EOMC");
+  const ticket = await MemberCard.deploy("EOTicket", "EOMC", "");
   await ticket.deployed();
   console.log(' MemberCard deployed to: ', ticket.address);
   

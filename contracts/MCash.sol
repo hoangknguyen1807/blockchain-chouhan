@@ -2,11 +2,12 @@
 pragma solidity ^0.8.4;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "../libraries/SafeMath.sol";
 
 import "hardhat/console.sol";
 
-contract MCash is IERC20 {
+contract MCash is IERC20, ReentrancyGuard {
     using SafeMath for uint256;
 
     string public name = "MCash";
@@ -131,7 +132,7 @@ contract MCash is IERC20 {
      * @param account The account that will receive the created tokens.
      * @param amount The amount that will be created.
      */
-    function _mint(address account, uint256 amount) internal {
+    function _mint(address account, uint256 amount) internal nonReentrant {
         require(account != address(0), "Cannot send minted token to address(0)!");
         _totalSupply += amount;
         _balances[account] += amount;
@@ -150,7 +151,7 @@ contract MCash is IERC20 {
      * @param account The account whose tokens will be burnt.
      * @param amount The amount that will be burnt.
      */
-    function _burn(address account, uint256 amount) internal {
+    function _burn(address account, uint256 amount) internal nonReentrant {
         require(account != address(0));
         require(amount <= _balances[account]);
 

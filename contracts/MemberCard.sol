@@ -7,11 +7,12 @@ import "@openzeppelin/contracts/utils/introspection/ERC165.sol";
 import "@openzeppelin/contracts/token/ERC721/IERC721Receiver.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/IERC721Enumerable.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/IERC721Metadata.sol";
+import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
-import {ERC721} from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
-contract MemberCard is IERC721Metadata, ERC165, Ownable {
+contract MemberCard is IERC721Metadata, ERC165, Ownable, ReentrancyGuard {
   using SafeMath for uint256;
   using Address for address;
   using Counters for Counters.Counter;
@@ -20,7 +21,7 @@ contract MemberCard is IERC721Metadata, ERC165, Ownable {
 
   string private _name;
   string private _symbol;
-  mapping(uint256 => string) private _tokenURIs;
+  string private _baseURI;
   mapping(uint256 => uint256) private _dueDates;
 
   uint256 private _duration = 30 days;
@@ -35,6 +36,14 @@ contract MemberCard is IERC721Metadata, ERC165, Ownable {
 
   function symbol() external view override returns (string memory) {
     return _symbol;
+  }
+
+  function baseURI() public view returns (string memory) {
+    return _baseURI;
+  }
+
+  function setBaseURI(string memory newURI) public onlyOwner {
+    _baseURI = newURI;
   }
 
   // Mapping from token ID to owner
@@ -66,9 +75,10 @@ contract MemberCard is IERC721Metadata, ERC165, Ownable {
    *   bytes4(keccak256('safeTransferFrom(address,address,uint256,bytes)'))
    */
 
-  constructor(string memory xname, string memory xsymbol) {
+  constructor(string memory xname, string memory xsymbol, string memory xbaseURI) {
     _name = xname;
     _symbol = xsymbol;
+    _baseURI = xbaseURI;
   }
 
   function getDueDate(uint256 tokenId) public view returns (uint256) {
@@ -76,7 +86,9 @@ contract MemberCard is IERC721Metadata, ERC165, Ownable {
   }
 
   function tokenURI(uint256 tokenId) external view override returns (string memory) {
-    return _tokenURIs[tokenId];
+    require(_exists(tokenId), "ERC721Metadata: URI query for non-existent token.");
+
+    return string(abi.encodePacked(_baseURI, tokenId.toString(), ".json"));
   }
 
   /**
@@ -271,7 +283,7 @@ contract MemberCard is IERC721Metadata, ERC165, Ownable {
    * @param to The address that will own the minted token
    * @param tokenId uint256 ID of the token to be minted by the msg.sender
    */
-  function _mint(address to, uint256 tokenId) internal {
+  function _mint(address to, uint256 tokenId) internal nonReentrant {
     require(to != address(0), "ERC721: Can't mint to the address 0");
     require(!_exists(tokenId), "ERC721: token already minted");
 
@@ -291,7 +303,7 @@ contract MemberCard is IERC721Metadata, ERC165, Ownable {
    * Reverts if the token does not exist
    * @param tokenId uint256 ID of the token being burned by the msg.sender
    */
-  function _burn(address owner, uint256 tokenId) internal {
+  function _burn(address owner, uint256 tokenId) internal nonReentrant {
     _clearApproval(owner, tokenId);
     _removeTokenFrom(owner, tokenId);
     emit Transfer(owner, address(0), tokenId);
