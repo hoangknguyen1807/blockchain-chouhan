@@ -88,7 +88,7 @@ contract MemberCard is IERC721Metadata, ERC165, Ownable, ReentrancyGuard {
   function tokenURI(uint256 tokenId) external view override returns (string memory) {
     require(_exists(tokenId), "ERC721Metadata: URI query for non-existent token.");
 
-    return string(abi.encodePacked(_baseURI, tokenId.toString(), ".json"));
+    return string(abi.encodePacked(_baseURI, Strings.toString(tokenId), ".json"));
   }
 
   /**

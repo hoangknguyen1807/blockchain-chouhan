@@ -9,14 +9,6 @@ describe("MemberCard contract unit tests", function () {
   let owner;
   let accounts;
 
-  this.beforeAll(async () => {
-    let MemberCard = await ethers.getContractFactory("MemberCard");
-    let mbCardInstance = await MemberCard.deploy("MemberCard", "EOT");
-    await mbCardInstance.deployed();
-
-    console.log('  MemberCard token deployed to address: ' + mbCardInstance.address, "\n");
-  });
-
   this.beforeEach(async function () {
     [owner, ...accounts] = await ethers.getSigners();
     MemberCard = await ethers.getContractFactory("MemberCard");
@@ -24,12 +16,11 @@ describe("MemberCard contract unit tests", function () {
     ticketInstance = await MemberCard.deploy("EOTicket", "EOMC", "evenodd.com/ticket/");
 
     const rs = await ticketInstance.deployed();
-    console.log("Deploy result:", rs);
   });
 
   it("Token collection name MemberCard and symbol EOT", async function () {
-    expect(await ticketInstance.name()).to.equal("MemberCard");
-    expect(await ticketInstance.symbol()).to.equal("EOT");
+    expect(await ticketInstance.name()).to.equal("EOTicket");
+    expect(await ticketInstance.symbol()).to.equal("EOMC");
   });
 
   it("Mint new ticket: must increase balance and set correct owner", async function () {
@@ -63,13 +54,13 @@ describe("MemberCard contract unit tests", function () {
   });
 
   it("Function tokenURI(uint256): should return token's URI string", async function () {
-    console.log("");
+    // console.log("");
 
     const tokenId = 1357;
 
-    await ticketInstance.mint(accounts[0].address, tokenId);
+    await ticketInstance.mint(accounts[0].address);
 
-    const returnedURI = await ticketInstance.tokenURI(tokenId);
+    const returnedURI = await ticketInstance.tokenURI(0);
 
     console.log(returnedURI);
   });
